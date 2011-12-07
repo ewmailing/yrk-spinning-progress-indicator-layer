@@ -5,6 +5,14 @@
 //  Copyright 2009 Kelan Champagne. All rights reserved.
 //
 
+/* Modified by Eric Wing with the following quick changes:
+ - Removed Quartz Composer stuff
+ - Made background black with a little transparency
+ - Made spinner white with a little transparency
+ - Fixed double release problem with _rootLayer which caused crash
+ - Added mouse event handling to 'trap' events to make it seem modal
+ */
+
 #import "SPILDTopLayerView.h"
 
 #import "YRKSpinningProgressIndicatorLayer.h"
@@ -13,10 +21,10 @@
 @interface SPILDTopLayerView ()
 
 - (void)setupLayers;
-
+/*
 - (void)usePlainBackground;
 - (void)useQCBackground;
-
+*/
 @end
 
 
@@ -28,14 +36,24 @@
 #pragma mark Init, Dealloc, etc
 //------------------------------------------------------------------------------
 
+- (id) initWithFrame:(NSRect)frame
+{
+	self = [super initWithFrame:frame];
+	if(nil != self)
+	{
+		[self setupLayers];
+	}
+	return self;
+}
+
 - (void)dealloc
 {
-    [_rootLayer removeFromSuperlayer];
-    [_rootLayer release];
-
     [_progressIndicatorLayer removeFromSuperlayer];
     [_plainBackgroundLayer removeFromSuperlayer];
-    [_qcBackgroundLayer removeFromSuperlayer];
+//    [_qcBackgroundLayer removeFromSuperlayer];
+
+	[self setLayer:nil]; // should release the rootLayer
+//    [_rootLayer release];
 
     [super dealloc];
 }
@@ -60,13 +78,15 @@
     _plainBackgroundLayer.bounds = [[self layer] bounds];
     _plainBackgroundLayer.autoresizingMask = (kCALayerWidthSizable|kCALayerHeightSizable);
     _plainBackgroundLayer.zPosition = 0;
-    CGColorRef cgColor = CGColorCreateFromNSColor([NSColor blueColor]);
+    CGColorRef cgColor = CGColorCreateFromNSColor([NSColor blackColor]);
     _plainBackgroundLayer.backgroundColor = cgColor;
+    _plainBackgroundLayer.opacity = 0.7;
+
     CGColorRelease(cgColor);
     [_rootLayer addSublayer:_plainBackgroundLayer];
 
     // Start with QC background
-    [self useQCBackground];
+//    [self useQCBackground];
 
     // Put a SpinningProgressIndicatorLayer in front of everything
     _progressIndicatorLayer = [[YRKSpinningProgressIndicatorLayer alloc] init];
@@ -77,15 +97,31 @@
     _progressIndicatorLayer.autoresizingMask = (kCALayerWidthSizable|kCALayerHeightSizable);
     _progressIndicatorLayer.zPosition = 10; // make sure it goes in front of the background layer
     _progressIndicatorLayer.hidden = YES;
+    _progressIndicatorLayer.color = [NSColor colorWithCalibratedRed:1.0 green:1.0 blue:1.0 alpha:0.8];
+
     [_rootLayer addSublayer:_progressIndicatorLayer];
 }
 
+
+// Need to handle mouse events to trap/block input
+
+- (void) mouseDown:(NSEvent*)the_event
+{
+//	NSLog(@"%@", NSStringFromSelector(_cmd));
+}
+- (void) mouseDragged:(NSEvent*)the_event
+{
+}
+- (void) mouseUp:(NSEvent*)the_event
+{
+//	NSLog(@"%@", NSStringFromSelector(_cmd));
+}
 
 //------------------------------------------------------------------------------
 #pragma mark -
 #pragma mark Toggling Background
 //------------------------------------------------------------------------------
-
+/*
 - (IBAction)toggleBackground:(id)sender
 {
     if (nil == _qcBackgroundLayer) {
@@ -140,7 +176,7 @@
     CGColorRelease(cgColor);
     [CATransaction commit];
 }
-
+*/
 
 //------------------------------------------------------------------------------
 #pragma mark -

@@ -22,8 +22,8 @@
 }
 
 // IB Actions
-- (IBAction)toggleBackground:(id)sender;
-- (void)setPlainBackgroundColor:(NSColor *)newColor;
+//- (IBAction)toggleBackground:(id)sender;
+//- (void)setPlainBackgroundColor:(NSColor *)newColor;
 
 // Properties
 @property (readonly) CALayer *rootLayer;
