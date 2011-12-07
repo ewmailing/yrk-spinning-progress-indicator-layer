@@ -28,6 +28,8 @@
 
 @implementation YRKSpinningProgressIndicatorLayer
 
+@synthesize animationTimeScaleFactor;
+
 //------------------------------------------------------------------------------
 #pragma mark -
 #pragma mark Init, Dealloc, etc
@@ -44,6 +46,7 @@
         self.color = [NSColor blackColor];
         [self setBounds:CGRectMake(0.0f, 0.0f, 10.0f, 10.0f)];
         [self createFinLayers];
+		animationTimeScaleFactor = 1.0;
     }
     return self;
 }
@@ -105,9 +108,11 @@
     fin.opacity = 1.0;
     [CATransaction commit];
 
-    // Tell that fin to animate its opacity to transparent.
+    [CATransaction begin];
+	[CATransaction setValue:[NSNumber numberWithFloat:0.5*animationTimeScaleFactor] forKey:kCATransactionAnimationDuration];    // Tell that fin to animate its opacity to transparent.
     fin.opacity = _fadeDownOpacity;
-
+	[CATransaction commit];
+	
     [self setNeedsDisplay];
 }
 
@@ -117,7 +122,7 @@
     [self disposeAnimTimer];
 
     // Why animate if not visible?  viewDidMoveToWindow will re-call this method when needed.
-    _animationTimer = [[NSTimer timerWithTimeInterval:(NSTimeInterval)0.05
+    _animationTimer = [[NSTimer timerWithTimeInterval:0.05 * animationTimeScaleFactor
                                                target:self
                                              selector:@selector(advancePosition)
                                              userInfo:nil
@@ -208,7 +213,9 @@
 - (void)createFinLayers
 {
     [self removeFinLayers];
-
+    [CATransaction begin];
+	[CATransaction setValue:[NSNumber numberWithFloat:0.5*animationTimeScaleFactor] forKey:kCATransactionAnimationDuration];
+	
     // Create new fin layers
     _finLayers = [[NSMutableArray alloc] initWithCapacity:_numFins];
 
@@ -235,7 +242,7 @@
 
         // set the fin's fade-out time (for when it's animating)
         CABasicAnimation *anim = [CABasicAnimation animation];
-        anim.duration = 0.7f;
+        anim.duration = 0.7 * animationTimeScaleFactor;
         NSDictionary* actions = [NSDictionary dictionaryWithObjectsAndKeys:
                                  anim, @"opacity",
                                  nil];
@@ -244,6 +251,7 @@
         [self addSublayer: newFin];
         [_finLayers addObject:newFin];
     }
+	[CATransaction commit];
 }
 
 - (void)removeFinLayers
@@ -258,8 +266,8 @@
 {
     CGSize size = [self bounds].size;
     CGFloat minSide = size.width > size.height ? size.height : size.width;
-    CGFloat width = minSide * 0.095f;
-    CGFloat height = minSide * 0.30f;
+    CGFloat width = minSide * 0.095f * 0.5;
+    CGFloat height = minSide * 0.30f * 0.5;
     return CGRectMake(0,0,width,height);
 }
 
